@@ -94,6 +94,27 @@ input,select,textarea{width:100%;padding:12px;border:1px solid var(--border);bor
     .calendar-actions button{min-height:36px;padding:7px 10px;font-size:.82rem}
     .calendar-actions .danger{color:#9a3f3f;border:1px solid #e3caca;background:#fff}
     
+
+    #mainView.board-page-active > :not(.topbar):not(#boardPage){display:none!important}
+    #boardPage{margin-top:14px}
+    .page-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+    .page-head h2{margin:0}
+    .board-preview-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+    .board-preview-head h2{margin:0;font-size:1.15rem}
+    .board-preview-head button{width:auto;min-height:38px;padding:8px 12px}
+    .board-preview-item{padding:11px 0;border-top:1px solid var(--border)}
+    .board-preview-item:first-child{border-top:0}
+    .board-preview-item strong{display:block;margin-bottom:3px}
+    .board-preview-item .small{margin-top:4px}
+
+
+    #mainView.calendar-page-active > :not(.topbar):not(#calendarPage){display:none!important}
+    .calendar-preview-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+    .calendar-preview-head h2{margin:0;font-size:1.15rem}
+    .calendar-preview-head button{width:auto;min-height:38px;padding:8px 12px}
+    .calendar-preview-item{padding:11px 0;border-top:1px solid var(--border)}
+    .calendar-preview-item:first-child{border-top:0}
+    .calendar-preview-item strong{display:block;margin-bottom:3px}
 </style>
   <title>StableHub</title>
 
@@ -158,8 +179,8 @@ input,select,textarea{width:100%;padding:12px;border:1px solid var(--border);bor
 
       <nav id="homeLinks" class="home-links">
         <button type="button" onclick="document.querySelector('.toolbar').scrollIntoView({behavior:'smooth'})">🐴 Hästar</button>
-        <button type="button" onclick="document.getElementById('calendarCard').scrollIntoView({behavior:'smooth'})">📅 Kalender</button>
-        <button type="button" onclick="document.getElementById('boardCard').scrollIntoView({behavior:'smooth'})">📌 Anslag</button>
+        <button type="button" onclick="openCalendarPage()">📅 Kalender</button>
+        <button type="button" onclick="openBoardPage()">📌 Anslag</button>
       </nav>
 
       <section id="stableSetup" class="card hidden">
@@ -205,20 +226,31 @@ input,select,textarea{width:100%;padding:12px;border:1px solid var(--border);bor
       <section id="horseList" class="horse-list"></section>
 
       <section id="dashboard" class="dash-grid">
-        <section id="boardCard" class="card dash-card">
-          <h2>📌 Anslagstavla</h2><div id="boardList"></div>
-          <form id="boardForm" class="inline-form">
-            <input type="hidden" id="boardId">
-            <input id="boardTitle" required placeholder="Rubrik">
-            <textarea id="boardBody" rows="2" required placeholder="Meddelande"></textarea>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button id="boardSubmitBtn" type="submit">+ Nytt anslag</button>
-              <button id="boardCancelBtn" type="button" class="secondary hidden">Avbryt</button>
-            </div>
-          </form>
+        <section id="boardPreviewCard" class="card dash-card">
+          <div class="board-preview-head">
+            <h2>📌 Anslagstavla</h2>
+            <button type="button" class="secondary" onclick="openBoardPage()">Visa alla</button>
+          </div>
+          <div id="boardPreviewList"></div>
         </section>
-        <section id="calendarCard" class="card dash-card">
-          <h2>📅 Kalender</h2><div id="calendarList"></div>
+        <section id="calendarPreviewCard" class="card dash-card">
+          <div class="calendar-preview-head">
+            <h2>📅 Kalender</h2>
+            <button type="button" class="secondary" onclick="openCalendarPage()">Visa kalender</button>
+          </div>
+          <div id="calendarPreviewList"></div>
+        </section>
+      </section>
+
+      <section id="calendarPage" class="hidden">
+        <div class="page-head">
+          <h2>📅 Kalender</h2>
+          <button id="closeCalendarPageBtn" type="button" class="ghost">← Tillbaka</button>
+        </div>
+        <section id="calendarCard" class="card">
+          <div id="calendarList"></div>
+          <hr style="border:0;border-top:1px solid var(--border);margin:18px 0">
+          <h3 id="calendarFormHeading">Ny kalenderhändelse</h3>
           <form id="calendarForm" class="inline-form">
             <input type="hidden" id="eventId">
             <input id="eventTitle" required placeholder="T.ex. Hovslagare">
@@ -228,6 +260,27 @@ input,select,textarea{width:100%;padding:12px;border:1px solid var(--border);bor
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button id="calendarSubmitBtn" type="submit">+ Lägg till</button>
               <button id="calendarCancelBtn" type="button" class="secondary hidden">Avbryt</button>
+            </div>
+          </form>
+        </section>
+      </section>
+
+      <section id="boardPage" class="hidden">
+        <div class="page-head">
+          <h2>📌 Anslagstavla</h2>
+          <button id="closeBoardPageBtn" type="button" class="ghost">← Tillbaka</button>
+        </div>
+        <section id="boardCard" class="card">
+          <div id="boardList"></div>
+          <hr style="border:0;border-top:1px solid var(--border);margin:18px 0">
+          <h3 id="boardFormHeading">Nytt anslag</h3>
+          <form id="boardForm" class="inline-form">
+            <input type="hidden" id="boardId">
+            <input id="boardTitle" required placeholder="Rubrik">
+            <textarea id="boardBody" rows="4" required placeholder="Meddelande"></textarea>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button id="boardSubmitBtn" type="submit">+ Nytt anslag</button>
+              <button id="boardCancelBtn" type="button" class="secondary hidden">Avbryt</button>
             </div>
           </form>
         </section>
@@ -601,7 +654,7 @@ function fillCalendarHorseOptions(selected=""){
 function resetCalendarForm(){
   $("calendarForm").reset();
   $("eventId").value="";
-  $("calendarSubmitBtn").textContent="+ Lägg till";
+  $("calendarSubmitBtn").textContent="+ Lägg till"; if($("calendarFormHeading"))$("calendarFormHeading").textContent="Ny kalenderhändelse";
   $("calendarCancelBtn").classList.add("hidden");
   fillCalendarHorseOptions("");
 }
@@ -617,7 +670,7 @@ function editCalendarEvent(id){
   $("eventDate").value=e.event_date||"";
   $("eventTime").value=e.event_time?e.event_time.slice(0,5):"";
   fillCalendarHorseOptions(e.horse_name||"");
-  $("calendarSubmitBtn").textContent="Spara ändringar";
+  $("calendarSubmitBtn").textContent="Spara ändringar"; if($("calendarFormHeading"))$("calendarFormHeading").textContent="Redigera kalenderhändelse";
   $("calendarCancelBtn").classList.remove("hidden");
   $("calendarForm").scrollIntoView({behavior:"smooth",block:"center"});
 }
@@ -635,7 +688,7 @@ async function deleteCalendarEvent(id){
 function resetBoardForm(){
   $("boardForm").reset();
   $("boardId").value="";
-  $("boardSubmitBtn").textContent="+ Nytt anslag";
+  $("boardSubmitBtn").textContent="+ Nytt anslag"; if($("boardFormHeading"))$("boardFormHeading").textContent="Nytt anslag";
   $("boardCancelBtn").classList.add("hidden");
 }
 
@@ -648,7 +701,7 @@ function editBoardPost(id){
   $("boardId").value=p.id;
   $("boardTitle").value=p.title||"";
   $("boardBody").value=p.body||"";
-  $("boardSubmitBtn").textContent="Spara ändringar";
+  $("boardSubmitBtn").textContent="Spara ändringar"; if($("boardFormHeading"))$("boardFormHeading").textContent="Redigera anslag";
   $("boardCancelBtn").classList.remove("hidden");
   $("boardForm").scrollIntoView({behavior:"smooth",block:"center"});
 }
@@ -718,13 +771,48 @@ function closeQuickEdit(horseId){
   });
 }
 
+
+function openCalendarPage(){
+  if(!currentStable)return;
+  $("mainView").classList.add("calendar-page-active");
+  $("calendarPage").classList.remove("hidden");
+  resetCalendarForm();
+  renderDashboard();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function closeCalendarPage(){
+  $("mainView").classList.remove("calendar-page-active");
+  $("calendarPage").classList.add("hidden");
+  resetCalendarForm();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function openBoardPage(){
+  if(!currentStable)return;
+  $("mainView").classList.add("board-page-active");
+  $("boardPage").classList.remove("hidden");
+  resetBoardForm();
+  renderDashboard();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function closeBoardPage(){
+  $("mainView").classList.remove("board-page-active");
+  $("boardPage").classList.add("hidden");
+  resetBoardForm();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
 function renderDashboard(){
   $("dashboard").classList.toggle("hidden",!currentStable);
   $("homeLinks").classList.toggle("hidden",!currentStable);
   $("heroImage").classList.toggle("hidden",!currentStable);
+  const previewPosts=boardPosts.slice(0,3);
+  $("boardPreviewList").innerHTML=previewPosts.length?previewPosts.map(p=>`<div class="board-preview-item"><strong>${esc(p.title)}</strong><div>${esc((p.body||"").length>100?(p.body||"").slice(0,100)+"…":(p.body||""))}</div><div class="small">${new Date(p.created_at).toLocaleDateString("sv-SE")}</div></div>`).join(""):'<p>Inga anslag ännu.</p>';
   $("boardList").innerHTML=boardPosts.length?boardPosts.map(p=>`<div class="dash-item"><strong>${esc(p.title)}</strong><div>${esc(p.body||"")}</div><div class="small">${new Date(p.created_at).toLocaleDateString("sv-SE")}</div>${canManageBoardPost(p)?`<div class="calendar-actions"><button type="button" class="secondary" data-edit-post="${p.id}">Redigera</button><button type="button" class="danger" data-delete-post="${p.id}">Ta bort</button></div>`:""}</div>`).join(""):'<p>Inga anslag ännu.</p>';
   $("boardList").querySelectorAll("[data-edit-post]").forEach(b=>b.addEventListener("click",()=>editBoardPost(b.dataset.editPost)));
   $("boardList").querySelectorAll("[data-delete-post]").forEach(b=>b.addEventListener("click",()=>deleteBoardPost(b.dataset.deletePost)));
+  const previewEvents=calendarEvents.slice(0,3);
+  $("calendarPreviewList").innerHTML=previewEvents.length?previewEvents.map(e=>`<div class="calendar-preview-item"><strong>${new Date(e.event_date+"T12:00:00").toLocaleDateString("sv-SE",{day:"numeric",month:"short"})} · ${esc(e.title)}</strong><div>${e.event_time?esc(e.event_time.slice(0,5))+" · ":""}${esc(e.horse_name||"Ingen häst")}</div></div>`).join(""):'<p>Inga kommande händelser.</p>';
   $("calendarList").innerHTML=calendarEvents.length?calendarEvents.map(e=>`<div class="dash-item"><strong>${new Date(e.event_date+"T12:00:00").toLocaleDateString("sv-SE",{day:"numeric",month:"short"})} · ${esc(e.title)}</strong><div>${e.event_time?esc(e.event_time.slice(0,5))+" · ":""}${esc(e.horse_name||"Ingen häst")}</div>${canManageCalendarEvent(e)?`<div class="calendar-actions"><button type="button" class="secondary" data-edit-event="${e.id}">Redigera</button><button type="button" class="danger" data-delete-event="${e.id}">Ta bort</button></div>`:""}</div>`).join(""):'<p>Inga kommande händelser.</p>';
   fillCalendarHorseOptions($("eventHorse")?.value||"");
   $("calendarList").querySelectorAll("[data-edit-event]").forEach(b=>b.addEventListener("click",()=>editCalendarEvent(b.dataset.editEvent)));
@@ -746,8 +834,11 @@ $("boardForm").addEventListener("submit",async e=>{
   if(error)return alert(error.message);
   resetBoardForm();
   await loadHorses();
+  if(!$("boardPage").classList.contains("hidden")) $("boardPage").scrollIntoView({behavior:"smooth",block:"start"});
 });
 $("boardCancelBtn").addEventListener("click",resetBoardForm);
+$("closeBoardPageBtn").addEventListener("click",closeBoardPage);
+
 $("calendarForm").addEventListener("submit",async e=>{
   e.preventDefault();
   const {data:{user}}=await supabase.auth.getUser(); if(!user)return;
@@ -767,8 +858,10 @@ $("calendarForm").addEventListener("submit",async e=>{
   if(error)return alert(error.message);
   resetCalendarForm();
   await loadHorses();
+  if(!$("calendarPage").classList.contains("hidden")) $("calendarPage").scrollIntoView({behavior:"smooth",block:"start"});
 });
 $("calendarCancelBtn").addEventListener("click",resetCalendarForm);
+$("closeCalendarPageBtn").addEventListener("click",closeCalendarPage);
 
 $("loginForm").insertAdjacentHTML("beforeend",'<button id="signupBtn" type="button" class="secondary">Skapa konto</button>');
 $("demoBtn").remove();
