@@ -96,6 +96,7 @@ input,select,textarea{width:100%;padding:12px;border:1px solid var(--border);bor
     
 
     #mainView.board-page-active > :not(.topbar):not(#boardPage){display:none!important}
+#mainView.board-page-active #boardPage{display:block!important}
     #boardPage{margin-top:14px}
     .page-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
     .page-head h2{margin:0}
@@ -109,6 +110,7 @@ input,select,textarea{width:100%;padding:12px;border:1px solid var(--border);bor
 
 
     #mainView.calendar-page-active > :not(.topbar):not(#calendarPage){display:none!important}
+#mainView.calendar-page-active #calendarPage{display:block!important}
     .calendar-preview-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
     .calendar-preview-head h2{margin:0;font-size:1.15rem}
     .calendar-preview-head button{width:auto;min-height:38px;padding:8px 12px}
@@ -179,8 +181,8 @@ input,select,textarea{width:100%;padding:12px;border:1px solid var(--border);bor
 
       <nav id="homeLinks" class="home-links">
         <button type="button" onclick="document.querySelector('.toolbar').scrollIntoView({behavior:'smooth'})">🐴 Hästar</button>
-        <button type="button" onclick="openCalendarPage()">📅 Kalender</button>
-        <button type="button" onclick="openBoardPage()">📌 Anslag</button>
+        <button id="openCalendarTopBtn" type="button">📅 Kalender</button>
+        <button id="openBoardTopBtn" type="button">📌 Anslag</button>
       </nav>
 
       <section id="stableSetup" class="card hidden">
@@ -229,14 +231,14 @@ input,select,textarea{width:100%;padding:12px;border:1px solid var(--border);bor
         <section id="boardPreviewCard" class="card dash-card">
           <div class="board-preview-head">
             <h2>📌 Anslagstavla</h2>
-            <button type="button" class="secondary" onclick="openBoardPage()">Visa alla</button>
+            <button id="openBoardPreviewBtn" type="button" class="secondary">Visa alla</button>
           </div>
           <div id="boardPreviewList"></div>
         </section>
         <section id="calendarPreviewCard" class="card dash-card">
           <div class="calendar-preview-head">
             <h2>📅 Kalender</h2>
-            <button type="button" class="secondary" onclick="openCalendarPage()">Visa kalender</button>
+            <button id="openCalendarPreviewBtn" type="button" class="secondary">Visa kalender</button>
           </div>
           <div id="calendarPreviewList"></div>
         </section>
@@ -773,31 +775,67 @@ function closeQuickEdit(horseId){
 
 
 function openCalendarPage(){
-  if(!currentStable)return;
-  $("mainView").classList.add("calendar-page-active");
-  $("calendarPage").classList.remove("hidden");
+  const main=$("mainView");
+  const page=$("calendarPage");
+  if(!main || !page) return;
+
+  // Stäng eventuell annan separat vy först.
+  main.classList.remove("board-page-active");
+  if($("boardPage")){
+    $("boardPage").classList.add("hidden");
+    $("boardPage").style.display="";
+  }
+
+  main.classList.add("calendar-page-active");
+  page.classList.remove("hidden");
+  page.style.display="block";
+
   resetCalendarForm();
   renderDashboard();
   window.scrollTo({top:0,behavior:"smooth"});
 }
+
 function closeCalendarPage(){
-  $("mainView").classList.remove("calendar-page-active");
-  $("calendarPage").classList.add("hidden");
+  const main=$("mainView");
+  const page=$("calendarPage");
+  if(main) main.classList.remove("calendar-page-active");
+  if(page){
+    page.classList.add("hidden");
+    page.style.display="";
+  }
   resetCalendarForm();
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
 function openBoardPage(){
-  if(!currentStable)return;
-  $("mainView").classList.add("board-page-active");
-  $("boardPage").classList.remove("hidden");
+  const main=$("mainView");
+  const page=$("boardPage");
+  if(!main || !page) return;
+
+  // Stäng eventuell kalender-vy först.
+  main.classList.remove("calendar-page-active");
+  if($("calendarPage")){
+    $("calendarPage").classList.add("hidden");
+    $("calendarPage").style.display="";
+  }
+
+  main.classList.add("board-page-active");
+  page.classList.remove("hidden");
+  page.style.display="block";
+
   resetBoardForm();
   renderDashboard();
   window.scrollTo({top:0,behavior:"smooth"});
 }
+
 function closeBoardPage(){
-  $("mainView").classList.remove("board-page-active");
-  $("boardPage").classList.add("hidden");
+  const main=$("mainView");
+  const page=$("boardPage");
+  if(main) main.classList.remove("board-page-active");
+  if(page){
+    page.classList.add("hidden");
+    page.style.display="";
+  }
   resetBoardForm();
   window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -838,6 +876,8 @@ $("boardForm").addEventListener("submit",async e=>{
 });
 $("boardCancelBtn").addEventListener("click",resetBoardForm);
 $("closeBoardPageBtn").addEventListener("click",closeBoardPage);
+if($("openBoardTopBtn")) $("openBoardTopBtn").addEventListener("click",openBoardPage);
+if($("openBoardPreviewBtn")) $("openBoardPreviewBtn").addEventListener("click",openBoardPage);
 
 $("calendarForm").addEventListener("submit",async e=>{
   e.preventDefault();
@@ -862,6 +902,8 @@ $("calendarForm").addEventListener("submit",async e=>{
 });
 $("calendarCancelBtn").addEventListener("click",resetCalendarForm);
 $("closeCalendarPageBtn").addEventListener("click",closeCalendarPage);
+if($("openCalendarTopBtn")) $("openCalendarTopBtn").addEventListener("click",openCalendarPage);
+if($("openCalendarPreviewBtn")) $("openCalendarPreviewBtn").addEventListener("click",openCalendarPage);
 
 $("loginForm").insertAdjacentHTML("beforeend",'<button id="signupBtn" type="button" class="secondary">Skapa konto</button>');
 $("demoBtn").remove();
