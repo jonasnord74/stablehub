@@ -117,6 +117,10 @@ input,select,textarea{width:100%;padding:12px;border:1px solid var(--border);bor
     .calendar-preview-item{padding:11px 0;border-top:1px solid var(--border)}
     .calendar-preview-item:first-child{border-top:0}
     .calendar-preview-item strong{display:block;margin-bottom:3px}
+
+    .home-logo-btn{appearance:none;border:0;background:transparent;padding:0;margin:0;color:inherit;font:inherit;font-weight:inherit;letter-spacing:inherit;text-align:left;cursor:pointer;min-height:0;width:auto}
+    .home-logo-btn:focus-visible{outline:2px solid currentColor;outline-offset:4px;border-radius:6px}
+
 </style>
   <title>StableHub</title>
 
@@ -135,7 +139,7 @@ input,select,textarea{width:100%;padding:12px;border:1px solid var(--border);bor
     <section id="authView" class="screen">
       <div class="card auth-card">
         <div class="brand">🐴</div>
-        <h1>StableHub</h1>
+        <h1><button id="homeLogoBtn" type="button" class="home-logo-btn" aria-label="Gå till startsidan">StableHub</button></h1>
         <p>Logga in för att se och uppdatera dagens stallinfo.</p>
 
         <form id="loginForm">
@@ -774,6 +778,26 @@ function closeQuickEdit(horseId){
 }
 
 
+
+function goHome(){
+  const main=$("mainView");
+  if(main){
+    main.classList.remove("calendar-page-active","board-page-active");
+  }
+  if($("calendarPage")){
+    $("calendarPage").classList.add("hidden");
+    $("calendarPage").style.display="";
+  }
+  if($("boardPage")){
+    $("boardPage").classList.add("hidden");
+    $("boardPage").style.display="";
+  }
+  if($("editor")) $("editor").classList.add("hidden");
+  try{ resetCalendarForm(); }catch(e){}
+  try{ resetBoardForm(); }catch(e){}
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
 function openCalendarPage(){
   const main=$("mainView");
   const page=$("calendarPage");
@@ -878,6 +902,7 @@ $("boardCancelBtn").addEventListener("click",resetBoardForm);
 $("closeBoardPageBtn").addEventListener("click",closeBoardPage);
 if($("openBoardTopBtn")) $("openBoardTopBtn").addEventListener("click",openBoardPage);
 if($("openBoardPreviewBtn")) $("openBoardPreviewBtn").addEventListener("click",openBoardPage);
+if($("homeLogoBtn")) $("homeLogoBtn").addEventListener("click",goHome);
 
 $("calendarForm").addEventListener("submit",async e=>{
   e.preventDefault();
@@ -1073,6 +1098,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 
+<script>
 document.addEventListener("submit", (e) => {
   const form = e.target;
   if (!form) return;
@@ -1094,6 +1120,7 @@ document.addEventListener("submit", (e) => {
     }
   }, 100);
 }, true);
+</script>
 
 
 <script>
