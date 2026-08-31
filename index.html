@@ -287,7 +287,7 @@ input,select,textarea{width:100%;padding:12px;border:1px solid var(--border);bor
             </select>
           </label>
           <label>Hö per dag (kg)
-            <input id="hay" type="number" min="0" max="50" step="0.5" value="8" />
+            <input id="hay" type="number" min="0" max="50" step="0.5" value="8" readonly aria-readonly="true" />
           </label>
           <label>Morgonhö (kg)
             <input id="morningHay" type="number" min="0" max="30" step="0.5" value="2" />
@@ -453,7 +453,7 @@ function render(){
             <select name="fly_mask"><option value="false" ${!h.fly_mask?"selected":""}>Nej</option><option value="true" ${h.fly_mask?"selected":""}>Ja</option></select>
           </label>
           <label>Hö/dag
-            <input name="hay" type="number" min="0" max="50" step="0.5" value="${Number(h.hay)||0}">
+            <input name="hay" type="number" min="0" max="50" step="0.5" value="${(Number(h.morning_hay)||0)+(Number(h.lunch_hay)||0)+(Number(h.afternoon_hay)||0)+(Number(h.evening_hay)||0)}" readonly aria-readonly="true">
           </label>
           <label>Morgon
             <input name="morning_hay" type="number" min="0" max="30" step="0.5" value="${Number(h.morning_hay)||0}">
@@ -510,7 +510,7 @@ async function saveQuick(e){
     indoor_blanket:String(fd.get("indoor_blanket")||"Inget täcke"),
     outdoor_blanket:String(fd.get("outdoor_blanket")||"Inget täcke"),
     fly_mask:String(fd.get("fly_mask"))==="true",
-    hay:Number(fd.get("hay"))||0,
+    hay:(Number(fd.get("morning_hay"))||0)+(Number(fd.get("lunch_hay"))||0)+(Number(fd.get("afternoon_hay"))||0)+(Number(fd.get("evening_hay"))||0),
     morning_hay:Number(fd.get("morning_hay"))||0,
     lunch_hay:Number(fd.get("lunch_hay"))||0,
     afternoon_hay:Number(fd.get("afternoon_hay"))||0,
@@ -553,7 +553,7 @@ async function uploadHorsePhoto(horseId){
 }
 async function saveHorse(e){
   e.preventDefault(); const {data:{user}}=await supabase.auth.getUser(); if(!user)return;
-  const payload={stable_id:currentStable.id,name:$("name").value.trim(),owner:$("owner").value.trim(),indoor_blanket:$("indoorBlanket").value,outdoor_blanket:$("outdoorBlanket").value,fly_mask:$("flyMask").value==="true",hay:Number($("hay").value)||0,morning_hay:Number($("morningHay").value)||0,lunch_hay:Number($("lunchHay").value)||0,afternoon_hay:Number($("afternoonHay").value)||0,evening_hay:Number($("eveningHay").value)||0,morning_feed:$("morningFeed").value.trim(),evening_feed:$("eveningFeed").value.trim(),paddock:$("paddock").value.trim(),notes:$("notes").value.trim(),updated_by:user.id,updated_at:new Date().toISOString()};
+  const payload={stable_id:currentStable.id,name:$("name").value.trim(),owner:$("owner").value.trim(),indoor_blanket:$("indoorBlanket").value,outdoor_blanket:$("outdoorBlanket").value,fly_mask:$("flyMask").value==="true",hay:(Number($("morningHay").value)||0)+(Number($("lunchHay").value)||0)+(Number($("afternoonHay").value)||0)+(Number($("eveningHay").value)||0),morning_hay:Number($("morningHay").value)||0,lunch_hay:Number($("lunchHay").value)||0,afternoon_hay:Number($("afternoonHay").value)||0,evening_hay:Number($("eveningHay").value)||0,morning_feed:$("morningFeed").value.trim(),evening_feed:$("eveningFeed").value.trim(),paddock:$("paddock").value.trim(),notes:$("notes").value.trim(),updated_by:user.id,updated_at:new Date().toISOString()};
   let id=$("horseId").value;
   if(id){ const {error}=await supabase.from("horses").update(payload).eq("id",id); if(error)return alert(error.message); }
   else { const {data,error}=await supabase.from("horses").insert(payload).select("id").single(); if(error)return alert(error.message); id=data.id; }
@@ -969,6 +969,29 @@ if ("serviceWorker" in navigator) {
     });
   });
 }
+</script>
+
+
+<script>
+(() => {
+  const n = v => Number(v) || 0;
+  const full = () => {
+    const total=document.getElementById("hay"); if(!total)return;
+    total.value=n(document.getElementById("morningHay")?.value)+n(document.getElementById("lunchHay")?.value)+n(document.getElementById("afternoonHay")?.value)+n(document.getElementById("eveningHay")?.value);
+  };
+  const quick = form => {
+    const total=form?.querySelector('[name="hay"]'); if(!total)return;
+    total.value=n(form.querySelector('[name="morning_hay"]')?.value)+n(form.querySelector('[name="lunch_hay"]')?.value)+n(form.querySelector('[name="afternoon_hay"]')?.value)+n(form.querySelector('[name="evening_hay"]')?.value);
+  };
+  document.addEventListener("input", e => {
+    if(["morningHay","lunchHay","afternoonHay","eveningHay"].includes(e.target.id)) full();
+    if(["morning_hay","lunch_hay","afternoon_hay","evening_hay"].includes(e.target.name)) quick(e.target.closest("form"));
+  });
+  document.addEventListener("focusin", e => {
+    if(e.target.closest?.("form")?.querySelector('[name="morning_hay"]')) quick(e.target.closest("form"));
+    if(["morningHay","lunchHay","afternoonHay","eveningHay","hay"].includes(e.target.id)) full();
+  });
+})();
 </script>
 
 </body>
